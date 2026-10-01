@@ -4,10 +4,16 @@ import { SwaggerModule } from '@nestjs/swagger';
 import 'dotenv/config';
 import { swaggerConfig } from './config';
 
+import { ZodValidationPipe } from 'nestjs-zod';
+import { ApiResponseInterceptor } from './common/interceptors';
 import { AppModule } from './modules/AppModule';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.useGlobalInterceptors(new ApiResponseInterceptor());
+
+  app.useGlobalPipes(new ZodValidationPipe());
 
   app.setGlobalPrefix('/api');
 

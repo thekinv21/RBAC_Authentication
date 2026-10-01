@@ -4,8 +4,9 @@ import { SwaggerModule } from '@nestjs/swagger';
 import 'dotenv/config';
 import { swaggerConfig } from './config';
 
-import { ZodValidationPipe } from 'nestjs-zod';
+import { AllExceptionsFilter } from './common/filters';
 import { ApiResponseInterceptor } from './common/interceptors';
+import { AppValidationPipe } from './common/pipes';
 import { AppModule } from './modules/AppModule';
 
 async function bootstrap() {
@@ -13,7 +14,9 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ApiResponseInterceptor());
 
-  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalPipes(new AppValidationPipe());
+
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   app.setGlobalPrefix('/api');
 

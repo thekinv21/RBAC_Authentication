@@ -1,4 +1,4 @@
-import { QueryDto } from '@/common/dto';
+import { IdParamDto, PageDto, QueryDto } from '@/common/dto';
 import {
   Body,
   Controller,
@@ -12,7 +12,7 @@ import {
   Version,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateRoleDto, UpdateRoleDto } from './dto/request';
+import { CreateRoleDto, FindRolesQueryDto, UpdateRoleDto } from './dto/request';
 import { RoleDto } from './dto/response';
 import { RoleService } from './RoleService';
 
@@ -27,10 +27,8 @@ export class RoleController {
     description: 'This operation will retrieve all roles in the system.',
   })
   @Get('/find-all')
-  async findAll(
-    @Query('isActive') isActive: boolean | undefined,
-  ): Promise<RoleDto[] | null> {
-    return this.roleService.findAll(isActive);
+  async findAll(@Query() query: FindRolesQueryDto): Promise<RoleDto[]> {
+    return this.roleService.findAll(query.isActive);
   }
 
   @Version('1')
@@ -40,7 +38,7 @@ export class RoleController {
       'This operation will retrieve roles with pagination support and an optional search term.',
   })
   @Get('/find-by-pagination')
-  async findByPagination(@Query() query: QueryDto): Promise<RoleDto[] | null> {
+  async findByPagination(@Query() query: QueryDto): Promise<PageDto<RoleDto>> {
     return this.roleService.findByPagination(query);
   }
 
@@ -51,7 +49,7 @@ export class RoleController {
       'This operation will retrieve a role based on its unique identifier.',
   })
   @Get('/find-by-unique/:id')
-  async findByUnique(@Param('id') id: string): Promise<RoleDto | null> {
+  async findByUnique(@Param() { id }: IdParamDto): Promise<RoleDto> {
     return this.roleService.findByUnique(id);
   }
 
@@ -63,7 +61,7 @@ export class RoleController {
   })
   @Post()
   async create(@Body() body: CreateRoleDto): Promise<void> {
-    this.roleService.create(body);
+    await this.roleService.create(body);
   }
 
   @Version('1')
@@ -74,7 +72,7 @@ export class RoleController {
   })
   @Put()
   async update(@Body() body: UpdateRoleDto): Promise<void> {
-    this.roleService.update(body);
+    await this.roleService.update(body);
   }
 
   @Version('1')
@@ -84,8 +82,8 @@ export class RoleController {
       'This operation will toggle the active status of the role. If the role is currently active, it will be deactivated, and vice versa.',
   })
   @Patch('/:id/toggle')
-  async toggle(@Param('id') id: string): Promise<void> {
-    this.roleService.toggle(id);
+  async toggle(@Param() { id }: IdParamDto): Promise<void> {
+    await this.roleService.toggle(id);
   }
 
   @Version('1')
@@ -95,7 +93,7 @@ export class RoleController {
       'This operation will permanently delete the role from the system. Use with caution.',
   })
   @Delete('/:id')
-  async delete(@Param('id') id: string): Promise<void> {
-    this.roleService.delete(id);
+  async delete(@Param() { id }: IdParamDto): Promise<void> {
+    await this.roleService.delete(id);
   }
 }

@@ -1,4 +1,4 @@
-export const RoleConstant: Record<string, string> = {
+export const RoleConstant = {
   ADMIN: 'ADMIN',
   USER: 'USER',
   OWNER: 'OWNER',

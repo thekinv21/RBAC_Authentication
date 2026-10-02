@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 
 import type { TJwtPayload } from '@/common/types';
+import { PrismaService } from '@/lib/prisma';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -17,6 +18,7 @@ export class JwtAuthGuard implements CanActivate {
 
   constructor(
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
     configService: ConfigService,
   ) {
     this.accessSecret = configService.getOrThrow<string>('JWT_ACCESS_SECRET');
@@ -35,8 +37,10 @@ export class JwtAuthGuard implements CanActivate {
       );
     }
 
+    let payload: TJwtPayload;
+
     try {
-      request.user = await this.jwtService.verifyAsync<TJwtPayload>(token, {
+      payload = await this.jwtService.verifyAsync<TJwtPayload>(token, {
         secret: this.accessSecret,
       });
     } catch {
@@ -44,6 +48,25 @@ export class JwtAuthGuard implements CanActivate {
         'The access token is invalid or has expired. Please provide a valid access token.',
       );
     }
+
+    /**
+     * Verify token version matches current user token version
+     */
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { tokenVersion: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User account is not active.');
+    }
+
+    if (user.tokenVersion !== payload.tokenVersion) {
+      throw new UnauthorizedException('Token has been revoked');
+    }
+
+    request.user = payload;
 
     return true;
   }

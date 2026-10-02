@@ -13,6 +13,7 @@ export const UserSchema = z.object({
   email: z.email(),
   avatar: z.string().nullable(),
   isEmailVerified: z.boolean(),
+  tokenVersion: z.number().optional(),
   isActive: z.boolean(),
   roles: z.array(
     z.object({

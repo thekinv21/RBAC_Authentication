@@ -30,6 +30,7 @@ export class UserService {
       },
       omit: {
         password: true,
+        tokenVersion: true,
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -68,6 +69,7 @@ export class UserService {
         },
         omit: {
           password: true,
+          tokenVersion: true,
         },
         orderBy: sortBy ? { email: sortBy } : { createdAt: 'asc' },
         skip: offset,
@@ -99,6 +101,7 @@ export class UserService {
       },
       omit: {
         password: true,
+        tokenVersion: true,
       },
     });
 
@@ -164,6 +167,7 @@ export class UserService {
         lastName,
         avatar,
         isActive,
+        ...(roles && { tokenVersion: { increment: 1 } }),
         roles: roles && {
           deleteMany: {},
           create: [...new Set(roles)].map(({ id }) => ({ roleId: id })),

@@ -26,10 +26,13 @@ export class JwtTokenService {
     configService: ConfigService,
   ) {
     this.accessSecret = configService.getOrThrow<string>('JWT_ACCESS_SECRET');
+
     this.refreshSecret = configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+
     this.accessExpiresIn = configService.getOrThrow<string>(
       'JWT_ACCESS_EXPIRES_IN',
     ) as TExpiresIn;
+
     this.refreshExpiresIn = configService.getOrThrow<string>(
       'JWT_REFRESH_EXPIRES_IN',
     ) as TExpiresIn;
@@ -47,7 +50,7 @@ export class JwtTokenService {
         expiresIn: this.accessExpiresIn,
       }),
       this.jwtService.signAsync(
-        { sub: payload.sub },
+        { sub: payload.sub, tokenVersion: payload.tokenVersion },
         { secret: this.refreshSecret, expiresIn: this.refreshExpiresIn },
       ),
     ]);
@@ -62,17 +65,19 @@ export class JwtTokenService {
 
   /**
    * @param refreshToken Refresh token issued by `generateTokens`
-   * @returns This operation will return the user id (`sub`) stored in the token
+   * @returns This operation will return the user id (`sub`) and tokenVersion stored in the token
    * @throws When the token is invalid or expired
    */
 
-  async verifyRefreshToken(refreshToken: string): Promise<string> {
-    const { sub } = await this.jwtService.verifyAsync<{ sub: string }>(
-      refreshToken,
-      { secret: this.refreshSecret },
-    );
+  async verifyRefreshToken(
+    refreshToken: string,
+  ): Promise<{ sub: string; tokenVersion: number }> {
+    const { sub, tokenVersion } = await this.jwtService.verifyAsync<{
+      sub: string;
+      tokenVersion: number;
+    }>(refreshToken, { secret: this.refreshSecret });
 
-    return sub;
+    return { sub, tokenVersion };
   }
 
   private expiresAt(token: string): string {

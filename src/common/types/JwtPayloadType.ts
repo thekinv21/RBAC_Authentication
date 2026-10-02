@@ -1,10 +1,8 @@
 export type TJwtPayload = {
   sub: string;
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  fullName: string;
   roles: string[];
+  tokenVersion: number;
   iat?: number;
   exp?: number;
 };

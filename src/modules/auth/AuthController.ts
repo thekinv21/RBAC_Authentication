@@ -1,6 +1,6 @@
 import { Body, Controller, HttpStatus, Post, Version } from '@nestjs/common';
 
-import { ApiEndpoint, Auth } from '@/common/decorators';
+import { ApiEndpoint } from '@/common/decorators';
 
 import { AuthService } from './AuthService';
 import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/request';
@@ -33,7 +33,6 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Auth()
   @Version('1')
   @ApiEndpoint({
     summary: 'Refresh tokens',

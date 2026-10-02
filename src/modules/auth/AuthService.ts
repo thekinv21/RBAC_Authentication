@@ -95,9 +95,13 @@ export class AuthService {
 
   async refresh({ refreshToken }: RefreshTokenDto): Promise<AuthDto> {
     let sub: string;
+    let tokenVersion: number;
 
     try {
-      sub = await this.jwtTokenService.verifyRefreshToken(refreshToken);
+      const verified =
+        await this.jwtTokenService.verifyRefreshToken(refreshToken);
+      sub = verified.sub;
+      tokenVersion = verified.tokenVersion;
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
@@ -108,16 +112,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
+    if (user.tokenVersion !== tokenVersion) {
+      throw new UnauthorizedException('Token has been revoked');
+    }
+
     return this.issueTokens(user);
   }
 
   private async issueTokens(user: UserDto): Promise<AuthDto> {
     const payload = {
+      tokenVersion: user?.tokenVersion ?? 0,
       sub: user.id,
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
+      fullName: `${user.firstName} ${user.lastName}`,
       roles: user.roles.map(({ name }) => name),
     } satisfies TJwtPayload;
 

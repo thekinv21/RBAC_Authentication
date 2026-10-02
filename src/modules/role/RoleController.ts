@@ -11,7 +11,8 @@ import {
   Version,
 } from '@nestjs/common';
 
-import { ApiEndpoint, Auth } from '@/common/decorators';
+import { RoleConstant } from '@/common/constants';
+import { ApiEndpoint, Auth, PreAuthorize } from '@/common/decorators';
 import {
   FindIsActiveQueryDto,
   IdParamDto,
@@ -35,6 +36,7 @@ export class RoleController {
     type: RoleDto,
     isArray: true,
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Get('/find-all')
   async findAll(@Query() query: FindIsActiveQueryDto): Promise<RoleDto[]> {
     return this.roleService.findAll(query.isActive);
@@ -49,6 +51,7 @@ export class RoleController {
     isArray: true,
     isPaginated: true,
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Get('/find-by-pagination')
   async findByPagination(@Query() query: QueryDto): Promise<PageDto<RoleDto>> {
     return this.roleService.findByPagination(query);
@@ -62,6 +65,7 @@ export class RoleController {
     type: RoleDto,
     isArray: false,
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Get('/find-by-unique/:id')
   async findByUnique(@Param() { id }: IdParamDto): Promise<RoleDto> {
     return this.roleService.findByUnique(id);
@@ -73,6 +77,7 @@ export class RoleController {
     description:
       'This operation will create a new role in the system. You need to provide a unique name and an optional description for the role.',
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Post()
   async create(@Body() body: CreateRoleDto): Promise<void> {
     await this.roleService.create(body);
@@ -84,6 +89,7 @@ export class RoleController {
     description:
       "This operation will update the details of an existing role. You can modify the role's name and description.",
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Put()
   async update(@Body() body: UpdateRoleDto): Promise<void> {
     await this.roleService.update(body);
@@ -95,6 +101,7 @@ export class RoleController {
     description:
       'This operation will toggle the active status of the role. If the role is currently active, it will be deactivated, and vice versa.',
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Patch('/:id/toggle')
   async toggle(@Param() { id }: IdParamDto): Promise<void> {
     await this.roleService.toggle(id);
@@ -106,6 +113,7 @@ export class RoleController {
     description:
       'This operation will permanently delete the role from the system. Use with caution.',
   })
+  @PreAuthorize(RoleConstant.ADMIN)
   @Delete('/:id')
   async delete(@Param() { id }: IdParamDto): Promise<void> {
     await this.roleService.delete(id);

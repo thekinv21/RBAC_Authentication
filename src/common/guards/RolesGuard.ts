@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 
 import type { Request } from 'express';
 
-import { ROLES_KEY, type TRoleName } from '@/common/decorators/RoleDecorator';
+import { ROLES_KEY, type TRoleName } from '@/common/decorators';
 import type { TJwtPayload } from '@/common/types';
 
 @Injectable()

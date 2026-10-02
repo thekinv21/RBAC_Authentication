@@ -151,6 +151,7 @@ export class UserService {
    * @param dto User update data. When roles is provided, the user's roles
    * are replaced with the given set.
    * @returns void
+   * @description Bumps tokenVersion, revoking the user's tokens.
    */
 
   async update(dto: UpdateUserDto): Promise<void> {
@@ -167,7 +168,7 @@ export class UserService {
         lastName,
         avatar,
         isActive,
-        ...(roles && { tokenVersion: { increment: 1 } }),
+        tokenVersion: { increment: 1 },
         roles: roles && {
           deleteMany: {},
           create: [...new Set(roles)].map(({ id }) => ({ roleId: id })),
@@ -186,7 +187,7 @@ export class UserService {
 
     const { count } = await this.prisma.user.updateMany({
       where: { id, isActive: existing.isActive },
-      data: { isActive: !existing.isActive },
+      data: { isActive: !existing.isActive, tokenVersion: { increment: 1 } },
     });
 
     if (!count) {

@@ -1,6 +1,7 @@
 import { Body, Controller, HttpStatus, Post, Version } from '@nestjs/common';
 
-import { ApiEndpoint } from '@/common/decorators';
+import { ApiEndpoint, Auth, CurrentUser } from '@/common/decorators';
+import { IdParamDto } from '@/common/dto';
 
 import { AuthService } from './AuthService';
 import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/request';
@@ -42,5 +43,16 @@ export class AuthController {
   @Post('/refresh-token')
   async refreshToken(@Body() dto: RefreshTokenDto): Promise<AuthDto> {
     return this.authService.refresh(dto);
+  }
+
+  @Version('1')
+  @ApiEndpoint({
+    summary: 'Log out',
+    description: 'Revokes every access and refresh token of the current user.',
+  })
+  @Auth()
+  @Post('/logout')
+  async logout(@CurrentUser('sub') { id }: IdParamDto): Promise<void> {
+    await this.authService.logout(id);
   }
 }

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { ArcjetSecurityModule } from '@/lib/arcjet/ArcjetSecurityModule';
 import { PrismaModule } from '@/lib/prisma/PrismaModule';
+import { JwtTokenModule } from '@/modules/auth/jwt';
 
 import { AuthModule } from './auth/AuthModule';
 import { RoleModule } from './role/RoleModule';
@@ -15,6 +16,7 @@ import { UserModule } from './user/UserModule';
     }),
     ArcjetSecurityModule,
     PrismaModule,
+    JwtTokenModule,
     AuthModule,
     RoleModule,
     UserModule,

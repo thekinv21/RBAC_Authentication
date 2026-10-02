@@ -10,12 +10,15 @@ import { verify } from 'argon2';
 import { RoleConstant } from '@/common/constants';
 import type { TJwtPayload } from '@/common/types';
 import { PrismaService } from '@/lib/prisma';
+import { JwtTokenService } from '@/modules/auth/jwt';
 
 import { UserService } from '../user/UserService';
 import { UserDto } from '../user/dto/response';
 import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/request';
 import { AuthDto } from './dto/response';
-import { JwtTokenService } from './jwt';
+
+const DUMMY_HASH =
+  '$argon2id$v=19$m=65536,p=4,t=3$DpzYKDG+NIhdDx42FsYzYg$juMdWcl34nb0MABNYhaZhPFDqNgTjbblWEDS2F4osJc';
 
 @Injectable()
 export class AuthService {
@@ -60,37 +63,39 @@ export class AuthService {
   /**
    * @param dto Login credentials
    * @returns This operation will retrieve the user and a fresh token pair
+   * @description Every login bumps tokenVersion, so tokens from earlier
+   * sessions are revoked.
    */
 
   async login({ email, password }: LoginDto): Promise<AuthDto> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: {
-        roles: { select: { role: { select: { id: true, name: true } } } },
-      },
+      select: { id: true, password: true, isActive: true },
     });
 
-    const dummyHash: string =
-      '$argon2id$v=19$m=65536,p=4,t=3$DpzYKDG+NIhdDx42FsYzYg$juMdWcl34nb0MABNYhaZhPFDqNgTjbblWEDS2F4osJc';
-
-    const isValid = await verify(user?.password ?? dummyHash, password);
+    const isValid = await verify(user?.password ?? DUMMY_HASH, password);
 
     if (!user || !isValid || !user.isActive) {
       throw new UnauthorizedException('Invalid email or password.');
     }
 
-    const { password: _password, roles, ...profile } = user;
-
-    return this.issueTokens({
-      ...profile,
-      roles: roles.map(({ role }) => role),
+    const { tokenVersion } = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { tokenVersion: { increment: 1 } },
+      select: { tokenVersion: true },
     });
+
+    return this.issueTokens(user.id, tokenVersion);
   }
 
   /**
    * @param dto Refresh token issued by login or a previous refresh
    * @returns This operation will retrieve the user and a fresh token pair,
    * with roles read from the database
+   * @description Refresh tokens are single-use: the version check and bump
+   * are one atomic update, so a replayed token is rejected. The new version
+   * is known from the matched row, so a concurrent logout can never be
+   * overwritten by the tokens issued here.
    */
 
   async refresh({ refreshToken }: RefreshTokenDto): Promise<AuthDto> {
@@ -106,28 +111,68 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    const user = await this.userService.findByUnique(sub);
+    const { count } = await this.prisma.user.updateMany({
+      where: { id: sub, isActive: true, tokenVersion },
+      data: { tokenVersion: { increment: 1 } },
+    });
 
-    if (!user?.isActive) {
+    if (!count) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    if (user.tokenVersion !== tokenVersion) {
-      throw new UnauthorizedException('Token has been revoked');
-    }
-
-    return this.issueTokens(user);
+    return this.issueTokens(sub, tokenVersion + 1);
   }
 
-  private async issueTokens(user: UserDto): Promise<AuthDto> {
-    const payload = {
-      tokenVersion: user?.tokenVersion ?? 0,
+  /**
+   * @param id Unique identifier of the signed-in user
+   * @returns void
+   * @description Bumps tokenVersion, revoking every access and refresh token.
+   */
+
+  async logout(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { tokenVersion: { increment: 1 } },
+    });
+  }
+
+  /**
+   *
+   * @param id
+   * @param tokenVersion
+   * @returns Generated tokens with user details
+   */
+
+  private async issueTokens(
+    id: string,
+    tokenVersion: number,
+  ): Promise<AuthDto> {
+    const {
+      roles,
+      tokenVersion: _tokenVersion,
+      password: _password,
+      ...profile
+    } = await this.prisma.user.findUniqueOrThrow({
+      where: { id },
+      include: {
+        roles: {
+          where: { role: { isActive: true } },
+          select: { role: { select: { id: true, name: true } } },
+        },
+      },
+    });
+
+    const user: UserDto = {
+      ...profile,
+      roles: roles.map(({ role }) => role),
+    };
+
+    const tokens = await this.jwtTokenService.generateTokens({
+      tokenVersion,
       sub: user.id,
       fullName: `${user.firstName} ${user.lastName}`,
       roles: user.roles.map(({ name }) => name),
-    } satisfies TJwtPayload;
-
-    const tokens = await this.jwtTokenService.generateTokens(payload);
+    } satisfies TJwtPayload);
 
     return { user, ...tokens };
   }

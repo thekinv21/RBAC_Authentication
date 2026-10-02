@@ -12,7 +12,8 @@ import {
   Version,
 } from '@nestjs/common';
 
-import { ApiEndpoint, Auth } from '@/common/decorators';
+import { RoleConstant } from '@/common/constants';
+import { ApiEndpoint, Auth, PreAuthorize } from '@/common/decorators';
 import {
   FindIsActiveQueryDto,
   IdParamDto,
@@ -37,6 +38,7 @@ export class UserController {
     isArray: true,
   })
   @Get('/find-all')
+  @PreAuthorize(RoleConstant.ADMIN)
   async findAll(
     @Query() query: FindIsActiveQueryDto,
   ): Promise<UserDto[] | undefined> {
@@ -51,6 +53,7 @@ export class UserController {
     isPaginated: true,
   })
   @Get('/find-by-pagination')
+  @PreAuthorize(RoleConstant.ADMIN)
   async findByPagination(
     @Query() query: QueryDto,
   ): Promise<PageDto<UserDto> | undefined> {
@@ -63,6 +66,7 @@ export class UserController {
     type: UserDto,
   })
   @Get('/find-by-unique/:id')
+  @PreAuthorize(RoleConstant.ADMIN)
   async findByUnique(
     @Param() { id }: IdParamDto,
   ): Promise<UserDto | undefined> {
@@ -75,6 +79,7 @@ export class UserController {
     status: HttpStatus.CREATED,
   })
   @Post()
+  @PreAuthorize(RoleConstant.ADMIN)
   async create(@Body() dto: CreateUserDto): Promise<void> {
     await this.userService.create(dto);
   }
@@ -82,6 +87,7 @@ export class UserController {
   @Version('1')
   @ApiEndpoint({ summary: 'Update a user' })
   @Put()
+  @PreAuthorize(RoleConstant.ADMIN)
   async update(@Body() dto: UpdateUserDto): Promise<void> {
     await this.userService.update(dto);
   }
@@ -92,6 +98,7 @@ export class UserController {
     description: 'Switches the user between active and inactive.',
   })
   @Patch('/:id/toggle')
+  @PreAuthorize(RoleConstant.ADMIN)
   async toggle(@Param() { id }: IdParamDto): Promise<void> {
     await this.userService.toggle(id);
   }
@@ -99,6 +106,7 @@ export class UserController {
   @Version('1')
   @ApiEndpoint({ summary: 'Delete a user' })
   @Delete('/:id')
+  @PreAuthorize(RoleConstant.ADMIN)
   async delete(@Param() { id }: IdParamDto): Promise<void> {
     await this.userService.delete(id);
   }

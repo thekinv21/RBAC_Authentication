@@ -6,7 +6,7 @@ const IsoDateSchema = z.codec(z.iso.datetime(), z.date(), {
   encode: (value) => value.toISOString(),
 });
 
-const UserSchema = z.object({
+export const UserSchema = z.object({
   id: z.uuid(),
   firstName: z.string(),
   lastName: z.string(),

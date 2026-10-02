@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
-import { PageDto } from '@/common/dto/PageDto';
-import { QueryDto } from '@/common/dto/QueryDto';
+import { hash } from 'bcryptjs';
+
+import { FindIsActiveQueryDto, PageDto, QueryDto } from '@/common/dto';
 import { PrismaService } from '@/lib/prisma';
 
 import { CreateUserDto, UpdateUserDto } from './dto/request';
@@ -11,27 +17,210 @@ import { UserDto } from './dto/response';
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(
-    query: Pick<QueryDto, 'isActive'>,
-  ): Promise<UserDto[] | undefined> {
-    return undefined;
+  /**
+   * @param query Optional isActive filter
+   * @returns This operation will retrieve the list of UserDto
+   */
+
+  async findAll({ isActive }: FindIsActiveQueryDto): Promise<UserDto[]> {
+    const users = await this.prisma.user.findMany({
+      where: { isActive },
+      include: {
+        roles: { select: { role: { select: { id: true, name: true } } } },
+      },
+      omit: {
+        password: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return users.map((user) => ({
+      ...user,
+      roles: user.roles.map(({ role }) => role),
+    }));
   }
 
-  async findByPagination(
-    query: QueryDto,
-  ): Promise<PageDto<UserDto> | undefined> {
-    return undefined;
+  /**
+   * @param query QueryDto containing pagination parameters. The search term
+   * matches first name, last name and email; sortBy orders by email.
+   * @returns This operation will retrieve a page of UserDto
+   */
+
+  async findByPagination(query: QueryDto): Promise<PageDto<UserDto>> {
+    const { offset, limit, searchTerm, sortBy, isActive } = query;
+
+    const where = {
+      isActive,
+      ...(searchTerm && {
+        OR: [
+          { firstName: { contains: searchTerm, mode: 'insensitive' as const } },
+          { lastName: { contains: searchTerm, mode: 'insensitive' as const } },
+          { email: { contains: searchTerm, mode: 'insensitive' as const } },
+        ],
+      }),
+    };
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        include: {
+          roles: { select: { role: { select: { id: true, name: true } } } },
+        },
+        omit: {
+          password: true,
+        },
+        orderBy: sortBy ? { email: sortBy } : { createdAt: 'asc' },
+        skip: offset,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return PageDto.of(
+      users.map((user) => ({
+        ...user,
+        roles: user.roles.map(({ role }) => role),
+      })),
+      total,
+      { offset, limit },
+    );
   }
 
-  async findByUnique(id: string): Promise<UserDto | undefined> {
-    return undefined;
+  /**
+   * @param id Unique identifier of the user
+   * @returns This operation will retrieve a single UserDto
+   */
+
+  async findByUnique(id: string): Promise<UserDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        roles: { select: { role: { select: { id: true, name: true } } } },
+      },
+      omit: {
+        password: true,
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return {
+      ...user,
+      roles: user.roles.map(({ role }) => role),
+    };
   }
 
-  async create(dto: CreateUserDto): Promise<void> {}
+  /**
+   * @param dto User creation data
+   * @returns void
+   */
 
-  async update(dto: UpdateUserDto): Promise<void> {}
+  async create(dto: CreateUserDto): Promise<void> {
+    const { firstName, lastName, email, avatar, isActive, password, roles } =
+      dto;
 
-  async toggle(id: string): Promise<void> {}
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+    });
 
-  async delete(id: string): Promise<void> {}
+    if (existing) throw new ConflictException('Email already in use!');
+
+    await this.checkRoles({
+      roles,
+    });
+
+    await this.prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: await hash(password, 16),
+        isActive,
+        avatar,
+        roles: roles && {
+          create: [...new Set(roles)].map(({ id }) => ({ roleId: id })),
+        },
+      },
+    });
+  }
+
+  /**
+   * @param dto User update data. When roles is provided, the user's roles
+   * are replaced with the given set.
+   * @returns void
+   */
+
+  async update(dto: UpdateUserDto): Promise<void> {
+    const { id, firstName, lastName, avatar, isActive, roles } = dto;
+
+    await this.checkRoles({
+      roles,
+    });
+
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        firstName,
+        lastName,
+        avatar,
+        isActive,
+        roles: roles && {
+          deleteMany: {},
+          create: [...new Set(roles)].map(({ id }) => ({ roleId: id })),
+        },
+      },
+    });
+  }
+
+  /**
+   * @param id Unique identifier of the user
+   * @returns void
+   */
+
+  async toggle(id: string): Promise<void> {
+    const existing = await this.findByUnique(id);
+
+    const { count } = await this.prisma.user.updateMany({
+      where: { id, isActive: existing.isActive },
+      data: { isActive: !existing.isActive },
+    });
+
+    if (!count) {
+      throw new ConflictException('User was modified concurrently, retry');
+    }
+  }
+
+  /**
+   * @param id Unique identifier of the user
+   * @returns void
+   * @description This operation will permanently delete the user and their
+   * role assignments.
+   */
+
+  async delete(id: string): Promise<void> {
+    await this.findByUnique(id);
+
+    await this.prisma.user.delete({ where: { id } });
+  }
+
+  /**
+   * @body roles Array
+   */
+
+  private async checkRoles({ roles }: Pick<CreateUserDto, 'roles'>) {
+    if (roles) {
+      const existing = await this.prisma.role.findMany({
+        where: { id: { in: roles.map(({ id }) => id) } },
+        select: { id: true },
+      });
+      const existingIds = new Set(existing.map(({ id }) => id));
+      const missing = [...new Set(roles)].filter(
+        ({ id }) => !existingIds.has(id),
+      );
+
+      if (missing.length) {
+        throw new BadRequestException(`Roles not found: ${missing.join(', ')}`);
+      }
+    }
+  }
 }

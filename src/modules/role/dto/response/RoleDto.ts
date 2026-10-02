@@ -9,7 +9,7 @@ const IsoDateSchema = z.codec(z.iso.datetime(), z.date(), {
 const RoleSchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string().nullable(),
   isActive: z.boolean(),
   createdAt: IsoDateSchema.optional(),
   updatedAt: IsoDateSchema.optional(),

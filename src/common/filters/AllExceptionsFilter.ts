@@ -1,4 +1,3 @@
-import type { TApiErrorDetail, TApiErrorResponse } from '@/common/types';
 import {
   ArgumentsHost,
   Catch,
@@ -7,8 +6,11 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+
 import type { Request, Response } from 'express';
 import { STATUS_CODES } from 'node:http';
+
+import type { TApiErrorDetail, TApiErrorResponse } from '@/common/types';
 
 const VALIDATION_MESSAGE = 'Validation failed';
 const INTERNAL_MESSAGE = 'Internal server error';

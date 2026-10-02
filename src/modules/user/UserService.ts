@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common';
+
 import { PageDto } from '@/common/dto/PageDto';
 import { QueryDto } from '@/common/dto/QueryDto';
 import { PrismaService } from '@/lib/prisma';
-import { Injectable } from '@nestjs/common';
+
 import { CreateUserDto, UpdateUserDto } from './dto/request';
 import { UserDto } from './dto/response';
 

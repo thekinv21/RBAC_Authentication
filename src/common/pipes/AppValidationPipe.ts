@@ -1,7 +1,9 @@
-import type { TApiErrorDetail } from '@/common/types';
 import { BadRequestException, type PipeTransform } from '@nestjs/common';
+
 import { createZodValidationPipe } from 'nestjs-zod';
 import { ZodError } from 'zod';
+
+import type { TApiErrorDetail } from '@/common/types';
 
 export const AppValidationPipe: new () => PipeTransform =
   createZodValidationPipe({

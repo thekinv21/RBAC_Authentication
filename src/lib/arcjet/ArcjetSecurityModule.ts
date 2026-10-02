@@ -1,7 +1,7 @@
-import { ArcjetGuard, ArcjetModule, fixedWindow, shield } from '@arcjet/nest';
 import { Global, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 
+import { ArcjetGuard, ArcjetModule, fixedWindow, shield } from '@arcjet/nest';
 import 'dotenv/config';
 
 @Global()

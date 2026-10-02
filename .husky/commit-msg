@@ -1,0 +1,11 @@
+MSG_FILE="$1"
+HEADER=$(head -n 1 "$MSG_FILE")
+PATTERN='^(feat|fix|chore|docs|ci|test|refactor):\[[^][:space:]]+\]\[[^][]+\]: .+$'
+
+if ! printf '%s' "$HEADER" | grep -Eq "$PATTERN"; then
+  echo "✖ Invalid commit message: $HEADER"
+  echo "  Expected: type:[branchName][developerName]: description"
+  echo "  Types:    feat, fix, chore, docs, ci, test, refactor"
+  echo "  Example:  fix:[master][Vadim]: resolve login bug"
+  exit 1
+fi

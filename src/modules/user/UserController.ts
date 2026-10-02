@@ -1,12 +1,3 @@
-import { UserService } from './UserService';
-
-import {
-  FindIsActiveQueryDto,
-  IdParamDto,
-  PageDto,
-  QueryDto,
-} from '@/common/dto';
-
 import {
   Body,
   Controller,
@@ -20,6 +11,14 @@ import {
   Version,
 } from '@nestjs/common';
 
+import {
+  FindIsActiveQueryDto,
+  IdParamDto,
+  PageDto,
+  QueryDto,
+} from '@/common/dto';
+
+import { UserService } from './UserService';
 import { CreateUserDto, UpdateUserDto } from './dto/request';
 import { UserDto } from './dto/response';
 
@@ -54,24 +53,24 @@ export class UserController {
   @Version('1')
   @Post()
   async create(@Body() dto: CreateUserDto): Promise<void> {
-    this.userService.create(dto);
+    await this.userService.create(dto);
   }
 
   @Version('1')
   @Put()
   async update(@Body() dto: UpdateUserDto): Promise<void> {
-    this.userService.update(dto);
+    await this.userService.update(dto);
   }
 
   @Version('1')
   @Patch('/:id/toggle')
   async toggle(@Param() { id }: IdParamDto): Promise<void> {
-    this.userService.toggle(id);
+    await this.userService.toggle(id);
   }
 
   @Version('1')
   @Delete('/:id')
   async delete(@Param() { id }: IdParamDto): Promise<void> {
-    this.userService.delete(id);
+    await this.userService.delete(id);
   }
 }

@@ -1,11 +1,4 @@
 import {
-  FindIsActiveQueryDto,
-  IdParamDto,
-  PageDto,
-  QueryDto,
-} from '@/common/dto';
-
-import {
   Body,
   Controller,
   Delete,
@@ -17,11 +10,18 @@ import {
   Query,
   Version,
 } from '@nestjs/common';
-
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+
+import {
+  FindIsActiveQueryDto,
+  IdParamDto,
+  PageDto,
+  QueryDto,
+} from '@/common/dto';
+
+import { RoleService } from './RoleService';
 import { CreateRoleDto, UpdateRoleDto } from './dto/request';
 import { RoleDto } from './dto/response';
-import { RoleService } from './RoleService';
 
 @ApiTags('Roles')
 @Controller('roles')

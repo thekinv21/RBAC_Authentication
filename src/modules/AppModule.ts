@@ -1,7 +1,9 @@
-import { ArcjetSecurityModule } from '@/lib/arcjet/ArcjetSecurityModule';
-import { PrismaModule } from '@/lib/prisma/PrismaModule';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+
+import { ArcjetSecurityModule } from '@/lib/arcjet/ArcjetSecurityModule';
+import { PrismaModule } from '@/lib/prisma/PrismaModule';
+
 import { RoleModule } from './role/RoleModule';
 import { UserModule } from './user/UserModule';
 

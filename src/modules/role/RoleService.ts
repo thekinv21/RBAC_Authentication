@@ -1,10 +1,12 @@
-import { PageDto, QueryDto } from '@/common/dto';
-import { PrismaService } from '@/lib/prisma';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+
+import { PageDto, QueryDto } from '@/common/dto';
+import { PrismaService } from '@/lib/prisma';
+
 import { CreateRoleDto, UpdateRoleDto } from './dto/request';
 import { RoleDto } from './dto/response';
 

@@ -1,6 +1,7 @@
-import { RoleConstant } from '@/common/constants';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
+import { RoleConstant } from '@/common/constants';
 
 const UpdateRoleSchema = z.object({
   id: z.string().uuid(),

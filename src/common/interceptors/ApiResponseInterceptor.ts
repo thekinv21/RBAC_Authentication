@@ -1,13 +1,15 @@
-import { PageDto } from '@/common/dto';
-import { TApiPaginatedResponse, TApiResponse } from '@/common/types';
 import {
   CallHandler,
   ExecutionContext,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+
 import type { Response } from 'express';
-import { map, Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
+
+import { PageDto } from '@/common/dto';
+import { TApiPaginatedResponse, TApiResponse } from '@/common/types';
 
 type WrappedResponse = TApiResponse | TApiPaginatedResponse;
 

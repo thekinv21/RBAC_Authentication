@@ -1,12 +1,13 @@
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule } from '@nestjs/swagger';
+
 import 'dotenv/config';
-import { swaggerConfig } from './config';
 
 import { AllExceptionsFilter } from './common/filters';
 import { ApiResponseInterceptor } from './common/interceptors';
 import { AppValidationPipe } from './common/pipes';
+import { swaggerConfig } from './config';
 import { AppModule } from './modules/AppModule';
 
 async function bootstrap() {
@@ -34,4 +35,4 @@ async function bootstrap() {
 
   Logger.debug('Swagger UI running on server: http://localhost:4200/docs');
 }
-bootstrap();
+void bootstrap();

@@ -1,3 +1,2 @@
-# Code style check runs on every commit
-bun run format:check || { echo "✖ Prettier/import-order check failed. Run: bun run format"; exit 1; }
-bun run lint || { echo "✖ Lint failed. Fix the errors above."; exit 1; }
+bun run format:check || { echo "Prettier/import-order check failed. Run: bun run format"; exit 1; }
+bun run lint || { echo "Lint failed. Fix the errors above."; exit 1; }

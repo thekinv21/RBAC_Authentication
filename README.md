@@ -1,4 +1,4 @@
-# Role Based Authetication & Authorization
+# Role Based Authentication & Authorization
 
 A robust backend authentication and authorization system built with NestJS 11, PostgreSQL, and Prisma ORM.
 
@@ -25,6 +25,8 @@ Key features include JWT-based authentication, secure password hashing with Argo
 - **Security:** Implements security best practices with Helmet and Arcjet for rate limiting and protection.
 - **Validation:** Uses `nestjs-zod` for robust request data validation.
 - **Swagger UI:** Provides interactive API documentation via Swagger.
+- **Custom Decorators:** Custom decorators such as `@Auth`, `@PreAuthorize`, `@ApiEndpoint` and `@CurrentUser`.
+- **Token Revocation:** Instant revocation of access and refresh tokens via a per-user `tokenVersion`.
 
 ## Tech Stack
 
@@ -193,6 +195,46 @@ For example, if the app is running on `http://localhost:4200`:
 - **Swagger UI:** `http://localhost:4200/docs`
 
 This documentation details all available endpoints, request/response formats, and authorization requirements.
+
+## Custom Decorators
+
+```ts
+@Auth()
+@Controller('users')
+export class UserController {
+  @Get()
+  @PreAuthorize(RoleConstant.ADMIN)
+  @ApiEndpoint({ summary: 'Get all users', type: UserDto, isArray: true })
+  findAll() {}
+
+  @Post('logout')
+  @ApiEndpoint({ summary: 'Log out' })
+  logout(@CurrentUser('sub') userId: string) {}
+}
+```
+
+## Token Revocation
+
+Access and refresh tokens are JWTs, but they can still be revoked instantly. Each user has a `tokenVersion` integer in the database, and every token carries the version it was issued with.
+
+**How it works**
+
+1. On login, `tokenVersion` is incremented and the new value is embedded in both the access and refresh token.
+2. On every protected request, `JwtAuthGuard` verifies the token signature and then loads the user from the database. The request is rejected with `401` if the user no longer exists, is inactive, or if `payload.tokenVersion !== user.tokenVersion`.
+3. Roles are also read from the database on each request (only active roles), so role changes apply immediately instead of waiting for the token to expire.
+4. Refresh tokens are single-use: `POST /api/auth/refresh-token` atomically increments `tokenVersion` only if the presented version still matches, so a replayed or stolen refresh token fails.
+
+**What revokes tokens (increments `tokenVersion`)**
+
+| Action                              | Effect                                        |
+| ----------------------------------- | --------------------------------------------- |
+| Login                               | Tokens from earlier sessions are revoked      |
+| Token refresh                       | The old access and refresh tokens are revoked |
+| Logout                              | All access and refresh tokens are revoked     |
+| Admin updates a user                | The user's tokens are revoked                 |
+| Admin toggles a user's active state | The user's tokens are revoked                 |
+
+Additional hardening in `JwtTokenService`: HS256 only, separate access/refresh secrets (at least 32 characters, must differ), issuer and audience checks, a token `typ` claim, and a unique `jti` per token
 
 ## Contributing
 

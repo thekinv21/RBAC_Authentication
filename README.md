@@ -7,6 +7,10 @@ A robust backend authentication and authorization system built with NestJS 11, P
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-latest-informational?style=flat-square&logo=postgresql&logoColor=white)](<>)
 [![Prisma](https://img.shields.io/badge/Prisma-7-green?style=flat-square&logo=Prisma)](<>)
 
+
+<img width="792" height="786" alt="Screenshot 2026-10-02 at 16 52 58" src="https://github.com/user-attachments/assets/cf4c064c-b7ee-4652-85b0-c934a5123f5b" />
+
+
 ## Description
 
 This project implements a secure and scalable backend authentication and authorization system using the NestJS framework. It leverages PostgreSQL as the database and Prisma ORM for seamless data management. The system is designed to handle user registration, login, token management (access and refresh tokens), and role-based access control (RBAC).

@@ -1,4 +1,4 @@
-import { HttpStatus, Type, applyDecorators } from '@nestjs/common';
+import { HttpStatus, Type, Version, applyDecorators } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOperation,
@@ -7,6 +7,7 @@ import {
 } from '@nestjs/swagger';
 
 type TApiEndpointOptions = {
+  version?: string;
   summary: string;
   description?: string;
   type?: Type<unknown>;
@@ -29,14 +30,17 @@ const PAGINATION_META_SCHEMA = {
   },
 };
 
-export function ApiEndpoint({
-  summary,
-  description,
-  type,
-  isArray = false,
-  isPaginated = false,
-  status = HttpStatus.OK,
-}: TApiEndpointOptions) {
+export function ApiEndpoint(params: TApiEndpointOptions) {
+  const {
+    version = '1',
+    summary,
+    description,
+    type,
+    isArray = false,
+    isPaginated = false,
+    status = HttpStatus.OK,
+  } = params;
+
   const list = isArray || isPaginated;
 
   let data: Record<string, unknown> = { nullable: true, example: null };
@@ -47,8 +51,22 @@ export function ApiEndpoint({
   }
 
   return applyDecorators(
+    /**
+     * API VERSION
+     */
+    Version(version),
+
+    /**
+     * Swagger UI API title and description
+     */
+
     ApiOperation({ summary, description }),
     ...(type ? [ApiExtraModels(type)] : []),
+
+    /**
+     * Swagger UI API RESPONSE
+     */
+
     ApiResponse({
       status,
       description: summary,

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { hash } from 'bcryptjs';
+import { hash } from 'argon2';
 
 import { FindIsActiveQueryDto, PageDto, QueryDto } from '@/common/dto';
 import { PrismaService } from '@/lib/prisma';
@@ -134,7 +134,7 @@ export class UserService {
         firstName,
         lastName,
         email,
-        password: await hash(password, 16),
+        password: await hash(password),
         isActive,
         avatar,
         roles: roles && {

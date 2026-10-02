@@ -12,7 +12,7 @@ import {
   Version,
 } from '@nestjs/common';
 
-import { ApiEndpoint } from '@/common/decorators';
+import { ApiEndpoint, Auth } from '@/common/decorators';
 import {
   FindIsActiveQueryDto,
   IdParamDto,
@@ -25,6 +25,7 @@ import { CreateUserDto, UpdateUserDto } from './dto/request';
 import { UserDto } from './dto/response';
 
 @Controller('/users')
+@Auth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

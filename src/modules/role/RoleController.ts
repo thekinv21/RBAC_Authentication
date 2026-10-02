@@ -11,7 +11,7 @@ import {
   Version,
 } from '@nestjs/common';
 
-import { ApiEndpoint } from '@/common/decorators';
+import { ApiEndpoint, Auth } from '@/common/decorators';
 import {
   FindIsActiveQueryDto,
   IdParamDto,
@@ -24,6 +24,7 @@ import { CreateRoleDto, UpdateRoleDto } from './dto/request';
 import { RoleDto } from './dto/response';
 
 @Controller('roles')
+@Auth()
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 

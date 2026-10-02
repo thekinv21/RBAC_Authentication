@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { RoleConstant } from '@/common/constants';
 
-const UpdateRoleSchema = z.object({
+const UpdateRoleSchema = z.strictObject({
   id: z.string().uuid(),
   name: z.enum(RoleConstant),
   description: z.string().max(255).optional(),

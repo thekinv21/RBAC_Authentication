@@ -10,8 +10,8 @@ import {
   Query,
   Version,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { ApiEndpoint } from '@/common/decorators';
 import {
   FindIsActiveQueryDto,
   IdParamDto,
@@ -23,15 +23,16 @@ import { RoleService } from './RoleService';
 import { CreateRoleDto, UpdateRoleDto } from './dto/request';
 import { RoleDto } from './dto/response';
 
-@ApiTags('Roles')
 @Controller('roles')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Get all roles',
     description: 'This operation will retrieve all roles in the system.',
+    type: RoleDto,
+    isArray: true,
   })
   @Get('/find-all')
   async findAll(@Query() query: FindIsActiveQueryDto): Promise<RoleDto[]> {
@@ -39,10 +40,13 @@ export class RoleController {
   }
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Get roles with pagination',
     description:
       'This operation will retrieve roles with pagination support and an optional search term.',
+    type: RoleDto,
+    isArray: true,
+    isPaginated: true,
   })
   @Get('/find-by-pagination')
   async findByPagination(@Query() query: QueryDto): Promise<PageDto<RoleDto>> {
@@ -50,10 +54,12 @@ export class RoleController {
   }
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Get role by unique identifier',
     description:
       'This operation will retrieve a role based on its unique identifier.',
+    type: RoleDto,
+    isArray: false,
   })
   @Get('/find-by-unique/:id')
   async findByUnique(@Param() { id }: IdParamDto): Promise<RoleDto> {
@@ -61,7 +67,7 @@ export class RoleController {
   }
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Create a new role',
     description:
       'This operation will create a new role in the system. You need to provide a unique name and an optional description for the role.',
@@ -72,7 +78,7 @@ export class RoleController {
   }
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Update an existing role',
     description:
       "This operation will update the details of an existing role. You can modify the role's name and description.",
@@ -83,7 +89,7 @@ export class RoleController {
   }
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Toggle role active status',
     description:
       'This operation will toggle the active status of the role. If the role is currently active, it will be deactivated, and vice versa.',
@@ -94,7 +100,7 @@ export class RoleController {
   }
 
   @Version('1')
-  @ApiOperation({
+  @ApiEndpoint({
     summary: 'Delete a role',
     description:
       'This operation will permanently delete the role from the system. Use with caution.',

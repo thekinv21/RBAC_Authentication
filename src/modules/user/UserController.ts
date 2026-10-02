@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -11,6 +12,7 @@ import {
   Version,
 } from '@nestjs/common';
 
+import { ApiEndpoint } from '@/common/decorators';
 import {
   FindIsActiveQueryDto,
   IdParamDto,
@@ -27,6 +29,12 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Version('1')
+  @ApiEndpoint({
+    summary: 'Find all users',
+    description: 'Returns all users, optionally filtered by active status.',
+    type: UserDto,
+    isArray: true,
+  })
   @Get('/find-all')
   async findAll(
     @Query() query: FindIsActiveQueryDto,
@@ -35,6 +43,12 @@ export class UserController {
   }
 
   @Version('1')
+  @ApiEndpoint({
+    summary: 'Find users with pagination',
+    description: 'Returns a page of users with pagination meta.',
+    type: UserDto,
+    isPaginated: true,
+  })
   @Get('/find-by-pagination')
   async findByPagination(
     @Query() query: QueryDto,
@@ -43,6 +57,10 @@ export class UserController {
   }
 
   @Version('1')
+  @ApiEndpoint({
+    summary: 'Find a user by id',
+    type: UserDto,
+  })
   @Get('/find-by-unique/:id')
   async findByUnique(
     @Param() { id }: IdParamDto,
@@ -51,24 +69,34 @@ export class UserController {
   }
 
   @Version('1')
+  @ApiEndpoint({
+    summary: 'Create a user',
+    status: HttpStatus.CREATED,
+  })
   @Post()
   async create(@Body() dto: CreateUserDto): Promise<void> {
     await this.userService.create(dto);
   }
 
   @Version('1')
+  @ApiEndpoint({ summary: 'Update a user' })
   @Put()
   async update(@Body() dto: UpdateUserDto): Promise<void> {
     await this.userService.update(dto);
   }
 
   @Version('1')
+  @ApiEndpoint({
+    summary: 'Toggle user active status',
+    description: 'Switches the user between active and inactive.',
+  })
   @Patch('/:id/toggle')
   async toggle(@Param() { id }: IdParamDto): Promise<void> {
     await this.userService.toggle(id);
   }
 
   @Version('1')
+  @ApiEndpoint({ summary: 'Delete a user' })
   @Delete('/:id')
   async delete(@Param() { id }: IdParamDto): Promise<void> {
     await this.userService.delete(id);

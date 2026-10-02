@@ -3,6 +3,7 @@ import { PrismaModule } from '@/lib/prisma/PrismaModule';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RoleModule } from './role/RoleModule';
+import { UserModule } from './user/UserModule';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RoleModule } from './role/RoleModule';
     ArcjetSecurityModule,
     PrismaModule,
     RoleModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],

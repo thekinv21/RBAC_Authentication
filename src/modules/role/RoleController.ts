@@ -1,4 +1,10 @@
-import { IdParamDto, PageDto, QueryDto } from '@/common/dto';
+import {
+  FindIsActiveQueryDto,
+  IdParamDto,
+  PageDto,
+  QueryDto,
+} from '@/common/dto';
+
 import {
   Body,
   Controller,
@@ -11,8 +17,9 @@ import {
   Query,
   Version,
 } from '@nestjs/common';
+
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateRoleDto, FindRolesQueryDto, UpdateRoleDto } from './dto/request';
+import { CreateRoleDto, UpdateRoleDto } from './dto/request';
 import { RoleDto } from './dto/response';
 import { RoleService } from './RoleService';
 
@@ -27,7 +34,7 @@ export class RoleController {
     description: 'This operation will retrieve all roles in the system.',
   })
   @Get('/find-all')
-  async findAll(@Query() query: FindRolesQueryDto): Promise<RoleDto[]> {
+  async findAll(@Query() query: FindIsActiveQueryDto): Promise<RoleDto[]> {
     return this.roleService.findAll(query.isActive);
   }
 

@@ -9,6 +9,8 @@ const QuerySchema = z.object({
   searchTerm: z.string().trim().optional(),
 
   sortBy: z.enum(['asc', 'desc']).optional(),
+
+  isActive: z.stringbool().optional(),
 });
 
 export class QueryDto extends createZodDto(QuerySchema) {}

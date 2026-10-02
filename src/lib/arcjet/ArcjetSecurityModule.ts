@@ -15,7 +15,7 @@ import 'dotenv/config';
         fixedWindow({
           mode: 'LIVE',
           window: '60s',
-          max: 10,
+          max: 100,
         }),
       ],
     }),

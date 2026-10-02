@@ -6,6 +6,7 @@ model User {
   password        String
   avatar          String?
   isEmailVerified Boolean    @default(false)
+  isActive        Boolean    @default(true)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   roles           UserRole[]
